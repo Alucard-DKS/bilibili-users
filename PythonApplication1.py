@@ -1,31 +1,63 @@
 from requests import *
 from bs4 import *
+import random
+import multiprocessing as mp
+import time
 
-base_url="https://api.bilibili.com/x/web-interface/archive/stat?aid="
-av={'aid':'28023328'}
-valid_num = 0
-invalid_num =0
+my_headers = [
+    "Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.153 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:30.0) Gecko/20100101 Firefox/30.0",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_2) AppleWebKit/537.75.14 (KHTML, like Gecko) Version/7.0.3 Safari/537.75.14",
+    "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.2; Win64; x64; Trident/6.0)",
+    'Mozilla/5.0 (Windows; U; Windows NT 5.1; it; rv:1.8.1.11) Gecko/20071127 Firefox/2.0.0.11',
+    'Opera/9.25 (Windows NT 5.1; U; en)',
+    'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1; .NET CLR 1.1.4322; .NET CLR 2.0.50727)',
+    'Mozilla/5.0 (compatible; Konqueror/3.5; Linux) KHTML/3.5.5 (like Gecko) (Kubuntu)',
+    'Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.8.0.12) Gecko/20070731 Ubuntu/dapper-security Firefox/1.5.0.12',
+    'Lynx/2.8.5rel.1 libwww-FM/2.14 SSL-MM/1.4.1 GNUTLS/1.2.9',
+    "Mozilla/5.0 (X11; Linux i686) AppleWebKit/535.7 (KHTML, like Gecko) Ubuntu/11.04 Chromium/16.0.912.77 Chrome/16.0.912.77 Safari/535.7",
+    "Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:10.0) Gecko/20100101 Firefox/10.0 "
+]
+proxy_list = [
+   
+]
+def getRandom_num():
+    av=[]
+    for i in range(200):
+        n = random.randint(31400000,31500000)
+        if n not in av:
+            av.append(n)
+    return av
 
-def getData(url):
+def multicore(av):
+    pool = mp.Pool()
+    res = pool.map(getData,av)
+    return res
+
+def getData(aid):
+    time.sleep(0.2)
+    proxy = random.choice(proxy_list)
+    proxies = {'http':proxy}
+    header = random.choice(my_headers)
+    base_url="https://api.bilibili.com/x/web-interface/archive/stat?aid="
+    url=base_url+str(aid)
     try:
-        data=get(url,params=av)
+        data=get(url,headers={'User-Agent':header},proxies = proxies )
         data.raise_for_status()
         data.encoding="utf-8"
-        return data
+        return data.text
     except:
-        return "获取异常"
+
+        return "获取异常\n"
 
 if __name__ == "__main__":
-    object = open("text.txt","w")
-    for i in range(0,100):
-        url=base_url+av['aid']
-        data=getData(url)
-        if "权限" in data.text:
-              invalid_num+=1
-              av['aid']=str(eval(av['aid'])+1)
-        else:      
-            object.write(data.text+'\n')
-            av['aid']=str(eval(av['aid'])+1)
-            valid_num+=1
-    object.write("total:100 valid: "+str(valid_num)+" invalid: "+str(invalid_num))
+    av = getRandom_num()
+    print("job-1 over!\n")
+    data = multicore(av)
+    object = open("text.txt","a")     
+    for i in range(len(av)):
+        object.write(data[i] + "\n")
     object.close()
+    print("job-2 over!\n")
+
