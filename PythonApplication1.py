@@ -1,9 +1,10 @@
 #引入需要的函数库
-from requests import *    #从服务器端获得信息的第三方库
-import random              #用于构建随机数的python自带库
+from requests import *       #从服务器端获得信息的第三方库
+import random                #用于构建随机数的python自带库
 import multiprocessing as mp    #用于多线程的python自带库
-import time                #用于添加延迟的python自带库
-import sys                  #用于显示进度条信息
+import time                 #用于添加延迟的python自带库
+import sys                     #用于显示进度条信息的python自带库
+
 my_headers = [              #浏览器头
     "Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36",
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.153 Safari/537.36",
@@ -20,15 +21,14 @@ my_headers = [              #浏览器头
     "Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:10.0) Gecko/20100101 Firefox/10.0 "
 ]
 proxy_list = [              #代理池
-    "119.5.1.54:808"
-    "122.237.104.200:80"
-    "61.138.33.20:808"
-    "180.119.141.231:8118"
-    "223.244.252.58:45744"
-    "116.192.172.131:52198"
-    "116.1.11.19:80"
-    "119.5.1.54:808"
+    "110.188.0.80:33529"
+    "223.85.196.75:9999"
+    "27.208.87.81:8060"
+    "182.88.12.153:9797"
+    "218.89.222.110:9999"
+    "101.37.79.125:3128"
 ]
+
 class ShowProcess():        #显示进度条
     i = 0 
     max_steps = 0           #最大执行步数（循环次数）
@@ -59,10 +59,9 @@ class ShowProcess():        #显示进度条
 
 def getRandom_num():            #从五十万个视频中随机取出5000组
     av=[]
-    for i in range(500):
+    for i in range(5000):
         n = random.randint(31000000,31500000)
-        if n not in av:
-            av.append(n)
+        av.append(n)
     return av
 
 def multicore(av):      #多线程
@@ -71,7 +70,7 @@ def multicore(av):      #多线程
     return res
 
 def getData(aid):           #获得含有有播放，收藏，投币等数据的原始数据
-    time.sleep(0.1)                     #增加每次获得的延迟，避免反爬
+    time.sleep(1)                     #增加每次获得的延迟，避免反爬
     proxy = random.choice(proxy_list)   
     proxies = {'http':proxy}            #代理ip，避免反爬
     header = random.choice(my_headers)  #加浏览器头，避免反爬
@@ -80,22 +79,23 @@ def getData(aid):           #获得含有有播放，收藏，投币等数据的
     try:
         data=get(url,headers={'User-Agent':header},proxies = proxies )
         data.raise_for_status()
-        data.encoding="utf-8"
+        data.encoding = "utf-8"
         return data.text + "\n"
     except:
         return ""
+
 if __name__ == "__main__":
     n1=0
-    n2=10
+    n2=100
     av = getRandom_num()
     print("job-1 over!\n")
     object = open("text.txt","a")
-    n = int(len(av)/10)-1
-    process_bar = ShowProcess(n , 'job-2 over!\n')  #设置一个进度条对象
-    for j in range(10,len(av),10):
+    n = len(av)/100 - 1
+    process_bar = ShowProcess(n ,'job-2 over!\n')  #设置一个进度条对象
+    for j in range(100,len(av),100):
         n2 = j
         data = multicore(av[n1:n2])
-        for i in range(10):
+        for i in range(100):
             object.write(data[i])
         n1 = j
         process_bar.show_process()
